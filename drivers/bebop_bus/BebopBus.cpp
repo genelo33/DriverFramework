@@ -304,6 +304,35 @@ int BebopBus::_set_esc_speed(const float speeds[4])
 	return 0;
 }
 
+// muellerlab: set esc speeds directly
+int BebopBus::_set_esc_speed_direct(const float speeds[4])
+{
+	struct bebop_bus_esc_speeds data {};
+
+	memset(&data, 0, sizeof(data));
+	// Correct endians and scale to MIN-MAX rpm
+	data.rpm_front_left = swap16(speeds[0]);
+	data.rpm_front_right = swap16(speeds[1]);
+	data.rpm_back_right = swap16(speeds[2]);
+	data.rpm_back_left = swap16(speeds[3]);
+
+	_speed_setpoint[0] = swap16(data.rpm_front_right);
+	_speed_setpoint[1] = swap16(data.rpm_front_left);
+	_speed_setpoint[2] = swap16(data.rpm_back_right);
+	_speed_setpoint[3] = swap16(data.rpm_back_left);
+
+	data.enable_security = 0x00;
+
+	data.checksum = _checksum(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data) - 1);
+
+	if (_writeReg(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data)) != 0) {
+		DF_LOG_ERR("Unable to set ESC speed");
+		return -1;
+	}
+
+	return 0;
+}
+
 int BebopBus::stop()
 {
 	int result = DevObj::stop();
