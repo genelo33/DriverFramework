@@ -304,17 +304,28 @@ int BebopBus::_set_esc_speed(const float speeds[4])
 	return 0;
 }
 
-// muellerlab: set esc speeds directly
-int BebopBus::_set_esc_speed_direct(const float speeds[4])
+// muellerlab: set esc rpm directly
+int BebopBus::_set_esc_rpm(const uint16_t rpm[4])
 {
 	struct bebop_bus_esc_speeds data {};
 
+	// Verify rpm valid
+	for (int i = 0; i < 4; i ++) {
+		if (rpm[i] < BEBOP_BLDC_RPM_MIN) {
+			PX4_INFO("WARNING: RPM for motor %d below valid limit. Setting to %d.", i, BEBOP_BLDC_RPM_MIN);
+			rpm[i] = BEBOP_BLDC_RPM_MIN;
+		} else if (rpm[i] > BEBOP_BLDC_RPM_MAX) {
+			PX4_INFO("WARNING: RPM for motor %d above valid limit. Setting to %d.", i, BEBOP_BLDC_RPM_MAX);
+			rpm[i] = BEBOP_BLDC_RPM_MAX;
+		}
+	}
+
 	memset(&data, 0, sizeof(data));
-	// Correct endians and scale to MIN-MAX rpm
-	data.rpm_front_left = swap16(speeds[0]);
-	data.rpm_front_right = swap16(speeds[1]);
-	data.rpm_back_right = swap16(speeds[2]);
-	data.rpm_back_left = swap16(speeds[3]);
+	// Correct endians
+	data.rpm_front_left = swap16(rpm[0]);
+	data.rpm_front_right = swap16(rpm[1]);
+	data.rpm_back_right = swap16(rpm[2]);
+	data.rpm_back_left = swap16(rpm[3]);
 
 	_speed_setpoint[0] = swap16(data.rpm_front_right);
 	_speed_setpoint[1] = swap16(data.rpm_front_left);
