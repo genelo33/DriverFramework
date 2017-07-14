@@ -339,14 +339,10 @@ int BebopBus::_set_esc_rpm(const uint16_t rpm[4])
 
 	data.checksum = _checksum(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data) - 1);
 
-	printf("I'm trying to wRITE u\n");
-
 	if (_writeReg(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data)) != 0) {
-		printf("Unable to set ESC speed\n");
 		DF_LOG_ERR("Unable to set ESC speed");
 		return -1;
 	}
-	printf("Speeds set\n");
 	return 0;
 }
 
