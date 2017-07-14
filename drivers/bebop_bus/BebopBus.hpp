@@ -166,7 +166,7 @@ protected:
 	int _set_esc_speed(const float speeds[4]);
 
 	// muellerlab: set rpm directly
-	int _set_esc_rpm(const float speeds[4]);
+	int _set_esc_rpm(const uint16_t rpm[4]);
 
 	// Get a string for the given status
 	const char *strstatus(uint8_t status);

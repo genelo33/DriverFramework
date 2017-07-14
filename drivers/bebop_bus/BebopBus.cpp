@@ -310,22 +310,25 @@ int BebopBus::_set_esc_rpm(const uint16_t rpm[4])
 	struct bebop_bus_esc_speeds data {};
 
 	// Verify rpm valid
+	uint16_t rpm_corrected[4];
 	for (int i = 0; i < 4; i ++) {
 		if (rpm[i] < BEBOP_BLDC_RPM_MIN) {
-			PX4_INFO("WARNING: RPM for motor %d below valid limit. Setting to %d.", i, BEBOP_BLDC_RPM_MIN);
-			rpm[i] = BEBOP_BLDC_RPM_MIN;
+			printf("WARNING: RPM (%u) for motor %d below valid limit. Setting to %d.\n", rpm[i], i, BEBOP_BLDC_RPM_MIN);
+			rpm_corrected[i] = 7000;
 		} else if (rpm[i] > BEBOP_BLDC_RPM_MAX) {
-			PX4_INFO("WARNING: RPM for motor %d above valid limit. Setting to %d.", i, BEBOP_BLDC_RPM_MAX);
-			rpm[i] = BEBOP_BLDC_RPM_MAX;
+			printf("WARNING: RPM (%u) for motor %d above valid limit. Setting to %d.\n", rpm[i], i, BEBOP_BLDC_RPM_MAX);
+			rpm_corrected[i] = BEBOP_BLDC_RPM_MAX;
+		} else {
+			rpm_corrected[i] = rpm[i];
 		}
 	}
 
 	memset(&data, 0, sizeof(data));
 	// Correct endians
-	data.rpm_front_left = swap16(rpm[0]);
-	data.rpm_front_right = swap16(rpm[1]);
-	data.rpm_back_right = swap16(rpm[2]);
-	data.rpm_back_left = swap16(rpm[3]);
+	data.rpm_front_left = swap16(rpm_corrected[0]);
+	data.rpm_front_right = swap16(rpm_corrected[1]);
+	data.rpm_back_right = swap16(rpm_corrected[2]);
+	data.rpm_back_left = swap16(rpm_corrected[3]);
 
 	_speed_setpoint[0] = swap16(data.rpm_front_right);
 	_speed_setpoint[1] = swap16(data.rpm_front_left);
@@ -336,11 +339,14 @@ int BebopBus::_set_esc_rpm(const uint16_t rpm[4])
 
 	data.checksum = _checksum(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data) - 1);
 
+	printf("I'm trying to wRITE u\n");
+
 	if (_writeReg(BEBOP_REG_SET_ESC_SPEED, (uint8_t *) &data, sizeof(data)) != 0) {
+		printf("Unable to set ESC speed\n");
 		DF_LOG_ERR("Unable to set ESC speed");
 		return -1;
 	}
-
+	printf("Speeds set\n");
 	return 0;
 }
 
