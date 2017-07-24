@@ -314,7 +314,7 @@ int BebopBus::_set_esc_rpm(const uint16_t rpm[4])
 	for (int i = 0; i < 4; i ++) {
 		if (rpm[i] < BEBOP_BLDC_RPM_MIN) {
 			printf("WARNING: RPM (%u) for motor %d below valid limit. Setting to %d.\n", rpm[i], i, BEBOP_BLDC_RPM_MIN);
-			rpm_corrected[i] = 7000;
+			rpm_corrected[i] = BEBOP_BLDC_RPM_MIN;
 		} else if (rpm[i] > BEBOP_BLDC_RPM_MAX) {
 			printf("WARNING: RPM (%u) for motor %d above valid limit. Setting to %d.\n", rpm[i], i, BEBOP_BLDC_RPM_MAX);
 			rpm_corrected[i] = BEBOP_BLDC_RPM_MAX;
